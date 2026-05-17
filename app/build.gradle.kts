@@ -46,6 +46,10 @@ android {
     }
 }
 
+configurations.all {
+    resolutionStrategy.force("com.squareup:javapoet:1.13.0")
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
