@@ -1,0 +1,63 @@
+package com.example.musicflowplus.presentation
+
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.DrawerValue
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
+import androidx.navigation.compose.rememberNavController
+import com.example.musicflowplus.presentation.components.AppDrawer
+import com.example.musicflowplus.presentation.components.BottomPlayer
+import com.example.musicflowplus.presentation.navigation.AppNavGraph
+import com.example.musicflowplus.presentation.navigation.Screen
+import kotlinx.coroutines.launch
+
+@Composable
+fun MusicFlowApp() {
+    val navController = rememberNavController()
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            AppDrawer(
+                onNavigate = { screen ->
+                    scope.launch {
+                        drawerState.close()
+                    }
+                    navController.navigate(screen.route) {
+                        popUpTo(Screen.Home.route)
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+    ) {
+        Scaffold(
+            bottomBar = {
+                BottomPlayer(
+                    title = "Трек не выбран",
+                    artist = "MusicFlow+",
+                    isPlaying = false,
+                    onClick = {
+                        navController.navigate(Screen.Player.route)
+                    }
+                )
+            }
+        ) { paddingValues ->
+            AppNavGraph(
+                navController = navController,
+                modifier = Modifier.padding(paddingValues),
+                onOpenDrawer = {
+                    scope.launch {
+                        drawerState.open()
+                    }
+                }
+            )
+        }
+    }
+}
