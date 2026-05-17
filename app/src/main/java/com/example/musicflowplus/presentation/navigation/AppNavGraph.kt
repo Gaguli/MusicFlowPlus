@@ -5,11 +5,11 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.musicflowplus.presentation.screens.SettingsScreen
 import com.example.musicflowplus.presentation.screens.favorites.FavoritesScreen
 import com.example.musicflowplus.presentation.screens.home.HomeScreen
 import com.example.musicflowplus.presentation.screens.online.OnlineScreen
 import com.example.musicflowplus.presentation.screens.player.PlayerScreen
-import com.example.musicflowplus.presentation.screens.SettingsScreen
 
 @Composable
 fun AppNavGraph(
@@ -22,6 +22,7 @@ fun AppNavGraph(
         startDestination = Screen.Home.route,
         modifier = modifier
     ) {
+
         composable(Screen.Home.route) {
             HomeScreen(
                 onOpenDrawer = onOpenDrawer,
@@ -32,19 +33,29 @@ fun AppNavGraph(
         }
 
         composable(Screen.Player.route) {
-            PlayerScreen()
+            PlayerScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
         }
 
         composable(Screen.Favorites.route) {
-            FavoritesScreen(onOpenDrawer = onOpenDrawer)
+            FavoritesScreen(
+                onOpenDrawer = onOpenDrawer
+            )
         }
 
         composable(Screen.Online.route) {
-            OnlineScreen(onOpenDrawer = onOpenDrawer)
+            OnlineScreen(
+                onOpenDrawer = onOpenDrawer
+            )
         }
 
         composable(Screen.Settings.route) {
-            SettingsScreen(onOpenDrawer = onOpenDrawer)
+            SettingsScreen(
+                onOpenDrawer = onOpenDrawer
+            )
         }
     }
 }
