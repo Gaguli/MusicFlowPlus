@@ -8,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 class SearchOnlineTracksUseCase {
 
     private val api: JamendoApi = Retrofit.Builder()
-        .baseUrl("https://api.jamendo.com/")
+        .baseUrl("https://itunes.apple.com/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
         .create(JamendoApi::class.java)
@@ -19,22 +19,22 @@ class SearchOnlineTracksUseCase {
         }
 
         val response = api.searchTracks(
-            clientId = "YOUR_CLIENT_ID",
-            query = query.trim()
+            term = query.trim()
         )
 
         return response.results.mapNotNull { dto ->
-            val id = dto.id ?: return@mapNotNull null
-            val title = dto.name ?: "Без названия"
+            val id = dto.trackId?.toString() ?: return@mapNotNull null
+            val title = dto.trackName ?: "Без названия"
             val artist = dto.artistName ?: "Неизвестный исполнитель"
+            val audioUrl = dto.previewUrl ?: return@mapNotNull null
 
             Track(
                 id = id,
                 title = title,
                 artist = artist,
-                duration = (dto.duration ?: 0) * 1000L,
-                audioUrl = dto.audio.orEmpty(),
-                imageUrl = dto.image.orEmpty(),
+                duration = dto.trackTimeMillis ?: 0L,
+                audioUrl = audioUrl,
+                imageUrl = dto.artworkUrl100.orEmpty(),
                 isFavorite = false
             )
         }

@@ -3,26 +3,29 @@ package com.example.musicflowplus.data.remote
 import com.google.gson.annotations.SerializedName
 
 data class JamendoTracksResponse(
+    @SerializedName("resultCount")
+    val resultCount: Int = 0,
+
     @SerializedName("results")
     val results: List<JamendoTrackDto> = emptyList()
 )
 
 data class JamendoTrackDto(
-    @SerializedName("id")
-    val id: String? = null,
+    @SerializedName("trackId")
+    val trackId: Long? = null,
 
-    @SerializedName("name")
-    val name: String? = null,
+    @SerializedName("trackName")
+    val trackName: String? = null,
 
-    @SerializedName("artist_name")
+    @SerializedName("artistName")
     val artistName: String? = null,
 
-    @SerializedName("duration")
-    val duration: Int? = null,
+    @SerializedName("trackTimeMillis")
+    val trackTimeMillis: Long? = null,
 
-    @SerializedName("audio")
-    val audio: String? = null,
+    @SerializedName("previewUrl")
+    val previewUrl: String? = null,
 
-    @SerializedName("image")
-    val image: String? = null
+    @SerializedName("artworkUrl100")
+    val artworkUrl100: String? = null
 )

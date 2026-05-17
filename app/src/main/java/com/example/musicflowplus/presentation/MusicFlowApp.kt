@@ -57,10 +57,8 @@ fun MusicFlowApp() {
                     artist = currentTrack?.artist ?: "MusicFlow+",
                     isPlaying = isPlaying,
                     onClick = {
-                        if (currentTrack == null) {
-                            navController.navigate(Screen.Player.route)
-                        } else {
-                            PlayerManager.togglePlayPause()
+                        navController.navigate(Screen.Player.route) {
+                            launchSingleTop = true
                         }
                     }
                 )

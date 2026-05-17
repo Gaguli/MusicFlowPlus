@@ -5,13 +5,12 @@ import retrofit2.http.Query
 
 interface JamendoApi {
 
-    @GET("v3.0/tracks/")
+    @GET("search")
     suspend fun searchTracks(
-        @Query("client_id") clientId: String,
-        @Query("format") format: String = "json",
-        @Query("limit") limit: Int = 20,
-        @Query("namesearch") query: String,
-        @Query("audioformat") audioFormat: String = "mp32",
-        @Query("imagesize") imageSize: Int = 300
+        @Query("term") term: String,
+        @Query("media") media: String = "music",
+        @Query("entity") entity: String = "song",
+        @Query("limit") limit: Int = 25,
+        @Query("country") country: String = "US"
     ): JamendoTracksResponse
 }

@@ -1,14 +1,15 @@
 package com.example.musicflowplus.presentation.screens.home
 
 import android.Manifest
-import android.os.Build
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -29,11 +30,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -41,7 +46,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.musicflowplus.di.ServiceLocator
 import com.example.musicflowplus.domain.model.Track
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,6 +61,9 @@ fun HomeScreen(
     val focusManager = LocalFocusManager.current
     val uiState by viewModel.uiState.collectAsState()
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     val audioPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         Manifest.permission.READ_MEDIA_AUDIO
     } else {
@@ -65,6 +75,10 @@ fun HomeScreen(
     ) { isGranted ->
         if (isGranted) {
             viewModel.loadLocalTracks(context)
+        } else {
+            scope.launch {
+                snackbarHostState.showSnackbar("Разрешение на музыку не выдано")
+            }
         }
     }
 
@@ -87,6 +101,9 @@ fun HomeScreen(
     }
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -173,18 +190,36 @@ fun HomeScreen(
                                     onTrackClick(track)
                                 }
                         ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text(
-                                    text = track.title,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
+                                Column(
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(
+                                        text = track.title,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
 
-                                Text(
-                                    text = track.artist,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
+                                    Text(
+                                        text = track.artist,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+
+                                Button(
+                                    onClick = {
+                                        scope.launch {
+                                            ServiceLocator.addFavoriteTrackUseCase(track)
+                                            snackbarHostState.showSnackbar("Трек добавлен в избранное")
+                                        }
+                                    }
+                                ) {
+                                    Text("♡")
+                                }
                             }
                         }
                     }

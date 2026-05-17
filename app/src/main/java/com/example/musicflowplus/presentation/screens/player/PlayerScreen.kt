@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -21,16 +22,22 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.musicflowplus.di.ServiceLocator
 import com.example.musicflowplus.presentation.player.PlayerManager
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,8 +46,17 @@ fun PlayerScreen(
 ) {
     val currentTrack by PlayerManager.currentTrack.collectAsState()
     val isPlaying by PlayerManager.isPlaying.collectAsState()
+    val progress by PlayerManager.progress.collectAsState()
+    val positionText by PlayerManager.positionText.collectAsState()
+    val durationText by PlayerManager.durationText.collectAsState()
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -55,6 +71,25 @@ fun PlayerScreen(
                             contentDescription = "Назад"
                         )
                     }
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            val track = currentTrack
+                            if (track != null) {
+                                scope.launch {
+                                    ServiceLocator.addFavoriteTrackUseCase(track)
+                                    snackbarHostState.showSnackbar("Трек добавлен в избранное")
+                                }
+                            } else {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Сначала выберите трек")
+                                }
+                            }
+                        }
+                    ) {
+                        Text("♡")
+                    }
                 }
             )
         }
@@ -65,7 +100,7 @@ fun PlayerScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
@@ -99,7 +134,6 @@ fun PlayerScreen(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
                 Text(
                     text = currentTrack?.title ?: "Трек не выбран",
                     style = MaterialTheme.typography.headlineSmall
@@ -111,10 +145,28 @@ fun PlayerScreen(
                 )
             }
 
-            LinearProgressIndicator(
-                progress = { if (currentTrack == null) 0f else 0.4f },
-                modifier = Modifier.fillMaxWidth()
-            )
+            if (currentTrack == null) {
+                LinearProgressIndicator(
+                    progress = { 0f },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            } else {
+                Slider(
+                    value = progress.coerceIn(0f, 1f),
+                    onValueChange = {
+                        PlayerManager.seekToProgress(it)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(positionText)
+                Text(durationText)
+            }
 
             Text(
                 text = if (isPlaying) "Сейчас воспроизводится" else "Пауза",
@@ -122,8 +174,16 @@ fun PlayerScreen(
             )
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                Button(
+                    onClick = {
+                        PlayerManager.playPrevious()
+                    },
+                    enabled = currentTrack != null
+                ) {
+                    Text("⏮")
+                }
 
                 Button(
                     onClick = {
@@ -138,11 +198,11 @@ fun PlayerScreen(
 
                 Button(
                     onClick = {
-                        PlayerManager.stop()
+                        PlayerManager.playNext()
                     },
                     enabled = currentTrack != null
                 ) {
-                    Text("Стоп")
+                    Text("⏭")
                 }
             }
         }
