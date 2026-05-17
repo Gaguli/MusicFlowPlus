@@ -1,8 +1,10 @@
 package com.example.musicflowplus.presentation.screens.home
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.view.inputmethod.InputMethodManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -15,7 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -37,17 +39,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.musicflowplus.di.ServiceLocator
 import com.example.musicflowplus.domain.model.Track
+import com.example.musicflowplus.presentation.player.PlayerManager
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,11 +64,29 @@ fun HomeScreen(
     viewModel: HomeViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val view = LocalView.current
     val focusManager = LocalFocusManager.current
     val uiState by viewModel.uiState.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    var isSearchEditing by remember {
+        mutableStateOf(true)
+    }
+
+    fun hideKeyboard() {
+        focusManager.clearFocus(force = true)
+        view.clearFocus()
+
+        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
+    }
+
+    fun finishSearch() {
+        hideKeyboard()
+        isSearchEditing = false
+    }
 
     val audioPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         Manifest.permission.READ_MEDIA_AUDIO
@@ -132,6 +156,7 @@ fun HomeScreen(
 
             Button(
                 onClick = {
+                    hideKeyboard()
                     permissionLauncher.launch(audioPermission)
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -139,25 +164,65 @@ fun HomeScreen(
                 Text("Разрешить доступ к музыке")
             }
 
-            OutlinedTextField(
-                value = uiState.searchQuery,
-                onValueChange = {
-                    viewModel.onSearchChanged(it)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                label = {
-                    Text("Поиск музыки")
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Search
-                ),
-                keyboardActions = KeyboardActions(
-                    onSearch = {
-                        focusManager.clearFocus()
-                    }
+            if (isSearchEditing) {
+                OutlinedTextField(
+                    value = uiState.searchQuery,
+                    onValueChange = {
+                        viewModel.onSearchChanged(it)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = {
+                        Text("Поиск музыки")
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Search
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onSearch = {
+                            finishSearch()
+                        }
+                    )
                 )
-            )
+
+                Button(
+                    onClick = {
+                        finishSearch()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Искать")
+                }
+            } else {
+                Card(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = if (uiState.searchQuery.isBlank()) {
+                                "Поиск не задан"
+                            } else {
+                                "Поиск: ${uiState.searchQuery}"
+                            },
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        Button(
+                            onClick = {
+                                isSearchEditing = true
+                            }
+                        ) {
+                            Text("Изменить")
+                        }
+                    }
+                }
+            }
 
             if (uiState.isLoading) {
                 CircularProgressIndicator()
@@ -181,12 +246,14 @@ fun HomeScreen(
                     contentPadding = PaddingValues(bottom = 100.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(filteredTracks) { track ->
+                    itemsIndexed(filteredTracks) { index, track ->
 
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
+                                    hideKeyboard()
+                                    PlayerManager.playPlaylist(filteredTracks, index)
                                     onTrackClick(track)
                                 }
                         ) {
@@ -212,6 +279,7 @@ fun HomeScreen(
 
                                 Button(
                                     onClick = {
+                                        hideKeyboard()
                                         scope.launch {
                                             ServiceLocator.addFavoriteTrackUseCase(track)
                                             snackbarHostState.showSnackbar("Трек добавлен в избранное")
