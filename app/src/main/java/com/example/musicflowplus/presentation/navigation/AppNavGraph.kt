@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.musicflowplus.presentation.player.PlayerManager
 import com.example.musicflowplus.presentation.screens.SettingsScreen
 import com.example.musicflowplus.presentation.screens.favorites.FavoritesScreen
 import com.example.musicflowplus.presentation.screens.home.HomeScreen
@@ -26,7 +27,8 @@ fun AppNavGraph(
         composable(Screen.Home.route) {
             HomeScreen(
                 onOpenDrawer = onOpenDrawer,
-                onTrackClick = {
+                onTrackClick = { track ->
+                    PlayerManager.play(track)
                     navController.navigate(Screen.Player.route)
                 }
             )
