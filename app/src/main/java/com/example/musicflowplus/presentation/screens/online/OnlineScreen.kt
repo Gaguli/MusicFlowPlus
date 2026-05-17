@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.musicflowplus.presentation.player.PlayerManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +48,7 @@ fun OnlineScreen(
                     IconButton(onClick = onOpenDrawer) {
                         Icon(
                             imageVector = Icons.Default.Menu,
-                            contentDescription = null
+                            contentDescription = "Открыть меню"
                         )
                     }
                 }
@@ -71,7 +72,8 @@ fun OnlineScreen(
                 modifier = Modifier.fillMaxWidth(),
                 label = {
                     Text("Поиск онлайн музыки")
-                }
+                },
+                singleLine = true
             )
 
             Button(
@@ -123,7 +125,11 @@ fun OnlineScreen(
                                 )
                             }
 
-                            Button(onClick = {}) {
+                            Button(
+                                onClick = {
+                                    PlayerManager.play(track)
+                                }
+                            ) {
                                 Text("▶")
                             }
                         }

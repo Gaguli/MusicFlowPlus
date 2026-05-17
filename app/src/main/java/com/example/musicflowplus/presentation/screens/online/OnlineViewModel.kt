@@ -36,13 +36,18 @@ class OnlineViewModel : ViewModel() {
                     errorMessage = null
                 )
 
-                val tracks = searchOnlineTracksUseCase(currentQuery)
+                val tracksFromApi = searchOnlineTracksUseCase(currentQuery)
+                val finalTracks = if (tracksFromApi.isEmpty()) {
+                    demoTracks()
+                } else {
+                    tracksFromApi
+                }
 
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    tracks = tracks,
-                    errorMessage = if (tracks.isEmpty()) {
-                        "Ничего не найдено"
+                    tracks = finalTracks,
+                    errorMessage = if (tracksFromApi.isEmpty()) {
+                        "API Jamendo без client_id не вернул треки, поэтому показаны демо-треки"
                     } else {
                         null
                     }
@@ -50,10 +55,36 @@ class OnlineViewModel : ViewModel() {
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    tracks = emptyList(),
-                    errorMessage = "Ошибка загрузки. Для Jamendo нужен client_id."
+                    tracks = demoTracks(),
+                    errorMessage = "API Jamendo без client_id не отвечает, поэтому показаны демо-треки"
                 )
             }
         }
+    }
+
+    private fun demoTracks(): List<Track> {
+        return listOf(
+            Track(
+                id = "demo_1",
+                title = "SoundHelix Song 1",
+                artist = "Demo Artist",
+                duration = 300000,
+                audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+            ),
+            Track(
+                id = "demo_2",
+                title = "SoundHelix Song 2",
+                artist = "Demo Artist",
+                duration = 300000,
+                audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+            ),
+            Track(
+                id = "demo_3",
+                title = "SoundHelix Song 3",
+                artist = "Demo Artist",
+                duration = 300000,
+                audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+            )
+        )
     }
 }
