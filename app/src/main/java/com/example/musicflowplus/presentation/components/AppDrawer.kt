@@ -2,14 +2,14 @@ package com.example.musicflowplus.presentation.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -19,10 +19,13 @@ import com.example.musicflowplus.presentation.navigation.Screen
 fun AppDrawer(
     onNavigate: (Screen) -> Unit
 ) {
+
     ModalDrawerSheet {
+
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
+
             Text(
                 text = "MusicFlow+",
                 style = MaterialTheme.typography.headlineSmall
@@ -34,7 +37,9 @@ fun AppDrawer(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-            Divider()
+
+            HorizontalDivider()
+
             Spacer(modifier = Modifier.height(8.dp))
 
             DrawerItem("Моя музыка") {
@@ -53,6 +58,10 @@ fun AppDrawer(
                 onNavigate(Screen.Online)
             }
 
+            DrawerItem("История прослушиваний") {
+                onNavigate(Screen.History)
+            }
+
             DrawerItem("Настройки") {
                 onNavigate(Screen.Settings)
             }
@@ -65,6 +74,7 @@ private fun DrawerItem(
     title: String,
     onClick: () -> Unit
 ) {
+
     NavigationDrawerItem(
         label = {
             Text(text = title)

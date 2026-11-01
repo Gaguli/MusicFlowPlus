@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import com.example.musicflowplus.presentation.player.PlayerManager
 import com.example.musicflowplus.presentation.screens.SettingsScreen
 import com.example.musicflowplus.presentation.screens.favorites.FavoritesScreen
+import com.example.musicflowplus.presentation.screens.history.HistoryScreen
 import com.example.musicflowplus.presentation.screens.home.HomeScreen
 import com.example.musicflowplus.presentation.screens.online.OnlineScreen
 import com.example.musicflowplus.presentation.screens.player.PlayerScreen
@@ -18,23 +19,32 @@ fun AppNavGraph(
     modifier: Modifier = Modifier,
     onOpenDrawer: () -> Unit
 ) {
+
     NavHost(
         navController = navController,
         startDestination = Screen.Home.route,
         modifier = modifier
     ) {
 
+        // Главный экран
         composable(Screen.Home.route) {
+
             HomeScreen(
                 onOpenDrawer = onOpenDrawer,
                 onTrackClick = { track ->
+
                     PlayerManager.play(track)
-                    navController.navigate(Screen.Player.route)
+
+                    navController.navigate(
+                        Screen.Player.route
+                    )
                 }
             )
         }
 
+        // Музыкальный плеер
         composable(Screen.Player.route) {
+
             PlayerScreen(
                 onBackClick = {
                     navController.popBackStack()
@@ -42,19 +52,41 @@ fun AppNavGraph(
             )
         }
 
+        // Избранное
         composable(Screen.Favorites.route) {
+
             FavoritesScreen(
                 onOpenDrawer = onOpenDrawer
             )
         }
 
+        // Онлайн-музыка
         composable(Screen.Online.route) {
+
             OnlineScreen(
                 onOpenDrawer = onOpenDrawer
             )
         }
 
+        // История прослушиваний
+        composable(Screen.History.route) {
+
+            HistoryScreen(
+                onOpenDrawer = onOpenDrawer,
+                onTrackClick = { track ->
+
+                    PlayerManager.play(track)
+
+                    navController.navigate(
+                        Screen.Player.route
+                    )
+                }
+            )
+        }
+
+        // Настройки
         composable(Screen.Settings.route) {
+
             SettingsScreen(
                 onOpenDrawer = onOpenDrawer
             )

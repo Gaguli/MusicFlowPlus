@@ -5,8 +5,14 @@ sealed class Screen(
     val title: String
 ) {
     data object Home : Screen("home", "Моя музыка")
+
     data object Player : Screen("player", "Плеер")
+
     data object Favorites : Screen("favorites", "Избранное")
+
     data object Online : Screen("online", "Онлайн музыка")
+
+    data object History : Screen("history", "История прослушиваний")
+
     data object Settings : Screen("settings", "Настройки")
 }
