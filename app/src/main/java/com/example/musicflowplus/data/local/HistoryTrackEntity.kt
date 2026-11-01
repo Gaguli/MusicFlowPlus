@@ -5,12 +5,21 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "history_tracks")
 data class HistoryTrackEntity(
-    @PrimaryKey
+
+    @PrimaryKey(autoGenerate = true)
+    val historyId: Long = 0,
+
     val id: String,
+
     val title: String,
+
     val artist: String,
+
     val duration: Long,
+
     val audioUrl: String,
+
     val imageUrl: String,
+
     val listenedAt: Long
 )

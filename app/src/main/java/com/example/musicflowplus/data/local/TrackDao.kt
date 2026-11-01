@@ -10,26 +10,62 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface TrackDao {
 
+    // ==============================
+    // ИЗБРАННЫЕ КОМПОЗИЦИИ
+    // ==============================
+
     @Query("SELECT * FROM favorite_tracks")
     fun observeFavoriteTracks(): Flow<List<FavoriteTrackEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun addFavoriteTrack(track: FavoriteTrackEntity)
+    suspend fun addFavoriteTrack(
+        track: FavoriteTrackEntity
+    )
 
     @Delete
-    suspend fun deleteFavoriteTrack(track: FavoriteTrackEntity)
+    suspend fun deleteFavoriteTrack(
+        track: FavoriteTrackEntity
+    )
 
     @Query("DELETE FROM favorite_tracks WHERE id = :trackId")
-    suspend fun deleteFavoriteTrackById(trackId: String)
+    suspend fun deleteFavoriteTrackById(
+        trackId: String
+    )
 
-    @Query("SELECT EXISTS(SELECT 1 FROM favorite_tracks WHERE id = :trackId)")
-    suspend fun isFavorite(trackId: String): Boolean
+    @Query(
+        "SELECT EXISTS(SELECT 1 FROM favorite_tracks WHERE id = :trackId)"
+    )
+    suspend fun isFavorite(
+        trackId: String
+    ): Boolean
 
-    @Query("SELECT * FROM history_tracks ORDER BY listenedAt DESC")
+
+    // ==============================
+    // ИСТОРИЯ ПРОСЛУШИВАНИЙ
+    // ==============================
+
+    @Query(
+        """
+        SELECT * FROM history_tracks
+        ORDER BY listenedAt DESC, historyId DESC
+        """
+    )
     fun observeHistoryTracks(): Flow<List<HistoryTrackEntity>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun addHistoryTrack(track: HistoryTrackEntity)
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun addHistoryTrack(
+        track: HistoryTrackEntity
+    )
+
+
+    @Query(
+        "DELETE FROM history_tracks WHERE historyId = :historyId"
+    )
+    suspend fun deleteHistoryTrackById(
+        historyId: Long
+    )
+
 
     @Query("DELETE FROM history_tracks")
     suspend fun clearHistory()
